@@ -85,6 +85,17 @@ describe('ckan.Client()', {testIsolation: false}, function () {
         expect(win.jQuery.getJSON).to.be.calledWith( '/api/i18n/en');
       })
     });
+
+    ['zh-Hans-CN', 'zh-Hant-TW'].forEach(function (locale) {
+      it('should request all parts of the locale ' + locale, function () {
+        cy.window().then(win => {
+          win.client.getLocaleData(locale);
+          expect(win.jQuery.getJSON).to.be.calledWith(
+            '/api/i18n/' + (locale === 'zh-Hans-CN' ? 'zh_Hans_CN' : 'zh_Hant_TW')
+          );
+        })
+      });
+    });
   });
 
   describe('.getCompletions(url, options, success, error)', {testIsolation: false}, function () {
