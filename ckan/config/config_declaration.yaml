@@ -1530,6 +1530,22 @@ groups:
 
   - annotation: Uploader Settings
     options:
+      - key: ckan.upload.admin.types
+        type: list
+        default: image
+        description: |
+          File types allowed to upload as the site logo. If empty and
+          :ref:`ckan.upload.admin.mimetypes` is also empty, no uploads are
+          allowed. Has no effect when using an explicit admin storage.
+
+      - key: ckan.upload.admin.mimetypes
+        type: list
+        default: image/png image/gif image/jpeg
+        description: |
+          File MIMEtypes allowed to upload as the site logo. If empty and
+          :ref:`ckan.upload.admin.types` is also empty, no uploads are
+          allowed. Has no effect when using an explicit admin storage.
+
       - key: ckan.upload.user.types
         type: list
         default: image

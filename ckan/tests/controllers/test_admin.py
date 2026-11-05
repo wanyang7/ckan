@@ -1,5 +1,7 @@
 # encoding: utf-8
 
+from io import BytesIO
+
 import pytest
 from bs4 import BeautifulSoup
 
@@ -48,6 +50,24 @@ def test_index(app, user_headers, sysadmin_headers):
 @pytest.mark.usefixtures("clean_db")
 class TestConfig(object):
     """View tests to go along with 'Customizing look and feel' docs."""
+
+    @pytest.mark.ckan_config('ckan.uploads_enabled', True)
+    def test_uploaded_logo_is_served(
+            self, make_app, sysadmin_headers, ckan_config, monkeypatch, tmp_path,
+            faker):
+        monkeypatch.setitem(ckan_config, 'ckan.storage_path', str(tmp_path))
+        app = make_app()
+        image = faker.image()
+        app.post(url_for('admin.config'), headers=sysadmin_headers, data={
+            'logo_upload': (BytesIO(image), 'logo.png'),
+            'save': '',
+        })
+
+        home = app.get('/')
+        logo = BeautifulSoup(home.data, 'html.parser').select_one('a.logo img')
+        assert logo is not None
+        assert logo['src'].startswith('/uploads/admin/')
+        assert app.get(logo['src']).data == image
 
     def test_site_title(self, app, sysadmin_headers):
         """Configure the site title"""

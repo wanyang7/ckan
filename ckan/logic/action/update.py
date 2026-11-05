@@ -1321,6 +1321,9 @@ def config_option_update(
     upload.update_data_dict(data_dict, 'ckan.site_logo',
                             'logo_upload', 'clear_logo_upload')
     upload.upload(uploader.get_max_image_size())
+    if isinstance(upload, uploader.Upload) and upload.filename:
+        data_dict['ckan.site_logo'] = f'/uploads/admin/{upload.filename}'
+
     data, errors = _validate(data_dict, schema, context)
     if errors:
         model.Session.rollback()

@@ -81,6 +81,37 @@ class TestInitResourceUpload(object):
 
 @pytest.mark.ckan_config('ckan.uploads_enabled', True)
 class TestUpload(object):
+    def test_admin_logo_upload(
+            self, monkeypatch, tmpdir, ckan_config, faker):
+        monkeypatch.setitem(ckan_config, 'ckan.storage_path', str(tmpdir))
+        image = faker.image()
+        data = {'logo_upload': FileStorage(
+            BytesIO(image), filename='logo.png', content_type='image/png')}
+
+        upload = Upload('admin')
+        upload.update_data_dict(
+            data, 'ckan.site_logo', 'logo_upload', 'clear_logo_upload')
+        upload.upload()
+
+        logo = tmpdir / 'storage' / 'uploads' / 'admin' / data['ckan.site_logo']
+        assert logo.read_binary() == image
+
+    @pytest.mark.parametrize('filename, content_type', [
+        ('logo.txt', 'text/plain'),
+        ('logo.png', 'image/png'),
+    ])
+    def test_admin_logo_rejects_non_image(
+            self, monkeypatch, tmpdir, ckan_config, filename, content_type):
+        monkeypatch.setitem(ckan_config, 'ckan.storage_path', str(tmpdir))
+        data = {'logo_upload': FileStorage(
+            BytesIO(b'This is not an image.'),
+            filename=filename, content_type=content_type)}
+
+        upload = Upload('admin')
+        with pytest.raises(ValidationError, match='Unsupported upload type'):
+            upload.update_data_dict(
+                data, 'ckan.site_logo', 'logo_upload', 'clear_logo_upload')
+
     def test_group_upload(
             self, monkeypatch, tmpdir, make_app, ckan_config, faker,
             reset_storages):
